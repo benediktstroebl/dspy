@@ -281,6 +281,9 @@ class Together(HFModel):
         self.token = os.getenv("TOGETHER_API_KEY")
         self.model = model
 
+        self.total_prompt_tokens = 0
+        self.total_completion_tokens = 0
+
         self.use_inst_template = False
         if any(keyword in self.model.lower() for keyword in ["inst", "instruct"]):
             self.use_inst_template = True
@@ -350,8 +353,10 @@ class Together(HFModel):
         try:
             with self.session.post(url, headers=headers, json=body) as resp:
                 resp_json = resp.json()
+                self.total_completion_tokens += resp_json["usage"]["completion_tokens"]
+                self.total_prompt_tokens += resp_json["usage"]["prompt_tokens"]
                 if use_chat_api:
-                    completions = [resp_json['output'].get('choices', [])[0].get('message', {}).get('content', "")]
+                    completions = [resp_json.get('choices', [])[0].get('message', {}).get('content', "")]
                 else:
                     completions = [resp_json['output'].get('choices', [])[0].get('text', "")]
                 response = {"prompt": prompt, "choices": [{"text": c} for c in completions]}

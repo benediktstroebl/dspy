@@ -63,6 +63,8 @@ class AzureOpenAI(LM):
         self.provider = "openai"
 
         self.system_prompt = system_prompt
+        self.total_prompt_tokens = 0
+        self.total_completion_tokens = 0
 
         # Define Client
         if OPENAI_LEGACY:
@@ -127,6 +129,8 @@ class AzureOpenAI(LM):
         usage_data = response.get("usage")
         if usage_data:
             total_tokens = usage_data.get("total_tokens")
+            self.total_completion_tokens += usage_data.get("completion_tokens")
+            self.total_prompt_tokens += usage_data.get("prompt_tokens")
             logging.debug(f"Azure OpenAI Total Token Usage: {total_tokens}")
 
     def basic_request(self, prompt: str, **kwargs):

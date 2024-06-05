@@ -93,6 +93,10 @@ class GPT3(LM):
         self.kwargs["model"] = model
         self.history: list[dict[str, Any]] = []
 
+        self.total_completion_tokens = 0
+        self.total_prompt_tokens = 0
+        self.model = model
+
     def _openai_client(self):
         return openai
 
@@ -101,6 +105,8 @@ class GPT3(LM):
         usage_data = response.get("usage")
         if usage_data:
             total_tokens = usage_data.get("total_tokens")
+            self.total_completion_tokens += usage_data.get("completion_tokens")
+            self.total_prompt_tokens += usage_data.get("prompt_tokens")
             logging.debug(f"OpenAI Response Token Usage: {total_tokens}")
 
     def basic_request(self, prompt: str, **kwargs):
